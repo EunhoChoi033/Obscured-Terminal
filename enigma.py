@@ -1,3 +1,7 @@
+# enigma.py
+
+
+
 import random
 from datetime import datetime
 from rotor import Rotor
@@ -34,12 +38,13 @@ class Enigma:
     
     def _setup_reflector(self) -> Reflector:
         '''Returns a set up reflector'''
-        return Reflector(random.sample(self._keywords, len(self._keywords)) + random.sample(self._keywords, len(self._keywords)))
+        return Reflector(self._keywords, random.sample(self._keyword_indexes, len(self._keywords)), random.sample(self._keyword_indexes, len(self._keywords)))
 
 
     def _set_random_seed(self) -> None:
         '''Sets up the current random seed'''
         today = datetime.today()
+        print(f'Random Seed: {_CODE_NUMBER + (today.year * today.month * today.day)}')
         random.seed(_CODE_NUMBER + (today.year * today.month * today.day))
     
     
@@ -64,7 +69,7 @@ class Enigma:
 
 
     def _cascade_message_forward(self, message: str) -> Generator[str, None, None]:
-        '''Cascades the given message forward through the rotor(s) and returns a Generator with each character'''
+        '''Cascades the given message forward through the rotor(s) and returns a Generator with each transformed character'''
         for character in list(message):
             self._click_rotor_offsets()
             for rotor in self._rotors:
@@ -72,10 +77,26 @@ class Enigma:
             yield character
 
 
+    def _process_message_through_reflector(self, message: str) -> Generator[str, None, None]:
+        '''Processes the given message through the Enigma\'s reflector and returns a generator with each transformed character'''
+        for character in list(message):
+            yield self._reflector.determine_reflection(character)
+            
+            
+    def _cascade_message_backward(self, message: str) -> Generator[str, None, None]:
+        '''Cascades the given message backward through the rotor(s) and returns a Generator with each transformed character'''
+        for character in list(message):
+            for rotor in reversed(self._rotors):
+                character = rotor.transfer_secondary_to_primary(character)
+            yield character
+
+
     def process_message(self, message: None | str) -> str:
         '''Returns the processed version of the given message'''
         if message is not None:
-            return ''.join(self._cascade_message_forward(message))
+            forwarded_message = ''.join(self._cascade_message_forward(message))
+            reflected_message = ''.join(self._process_message_through_reflector(forwarded_message))
+            return ''.join(self._cascade_message_backward(reflected_message))
         else:
             return ''
                 
