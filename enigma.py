@@ -10,7 +10,7 @@ from reflector import Reflector
 
 
 
-_NUM_ROTORS = 5
+_NUM_ROTORS = 2
 _CODE_NUMBER = 3301
 
 
@@ -38,13 +38,13 @@ class Enigma:
     
     def _setup_reflector(self) -> Reflector:
         '''Returns a set up reflector'''
-        return Reflector(self._keywords, random.sample(self._keyword_indexes, len(self._keywords)), random.sample(self._keyword_indexes, len(self._keywords)))
+        return Reflector(self._keywords, random.sample(self._keyword_indexes, len(self._keywords)))
 
 
     def _set_random_seed(self) -> None:
         '''Sets up the current random seed'''
         today = datetime.today()
-        print(f'Random Seed: {_CODE_NUMBER + (today.year * today.month * today.day)}')
+        # print(f'Random Seed: {_CODE_NUMBER + (today.year * today.month * today.day)}')
         random.seed(_CODE_NUMBER + (today.year * today.month * today.day))
     
     
@@ -56,47 +56,42 @@ class Enigma:
     def _click_rotor_offsets(self) -> None:
         '''Offsets the appropriate rotors based off of how each of them are currently offset'''
         self._rotor_offsets[0] += 1
+        self._rotors[0].click_rotor_by_one()
         for index in range(1, len((self._rotors))):
-            previous_rotor_offset, current_rotor_offset = self._rotor_offsets[index - 1], self._rotor_offsets[index]
+            previous_rotor_offset = self._rotor_offsets[index - 1]
 
             if previous_rotor_offset >= len(self._keywords):
                 previous_rotor_offset = 0
                 self._rotors[index - 1].click_rotor_by_one()
-            
-            current_rotor_offset += 1
-            self._rotors[index].click_rotor_by_one()
-            
 
 
-    def _cascade_message_forward(self, message: str) -> Generator[str, None, None]:
-        '''Cascades the given message forward through the rotor(s) and returns a Generator with each transformed character'''
-        for character in list(message):
-            self._click_rotor_offsets()
-            for rotor in self._rotors:
-                character = rotor.transfer_primary_to_secondary(character)
-            yield character
+    def _cascade_character_forward(self, character: str) -> str:
+        '''Cascades the given character forward through the rotor(s) and returns the transformed character'''
+        for rotor in self._rotors:
+            character = rotor.transfer_primary_to_secondary(character)
+        return character
 
 
-    def _process_message_through_reflector(self, message: str) -> Generator[str, None, None]:
-        '''Processes the given message through the Enigma\'s reflector and returns a generator with each transformed character'''
-        for character in list(message):
-            yield self._reflector.determine_reflection(character)
+    def _process_character_through_reflector(self, character: str) -> str:
+        '''Processes the given character through the Enigma\'s reflector and returns a generator with each transformed character'''
+        return self._reflector.determine_reflection(character)
             
             
-    def _cascade_message_backward(self, message: str) -> Generator[str, None, None]:
-        '''Cascades the given message backward through the rotor(s) and returns a Generator with each transformed character'''
-        for character in list(message):
-            for rotor in reversed(self._rotors):
-                character = rotor.transfer_secondary_to_primary(character)
-            yield character
+    def _cascade_character_backward(self, character: str) -> str:
+        '''Cascades the given character backward through the rotor(s) and returns the transformed character'''
+        for rotor in reversed(self._rotors):
+            character = rotor.transfer_secondary_to_primary(character)
+        return character
 
 
-    def process_message(self, message: None | str) -> str:
-        '''Returns the processed version of the given message'''
+    def process_message(self, message: str) -> Generator[str, None, None]:
+        '''Returns the processed version of the given message as Generator of characters'''
         if message is not None:
-            forwarded_message = ''.join(self._cascade_message_forward(message))
-            reflected_message = ''.join(self._process_message_through_reflector(forwarded_message))
-            return ''.join(self._cascade_message_backward(reflected_message))
+            for character in message:
+                self._click_rotor_offsets()
+                forwarded_character = self._cascade_character_forward(character)
+                reflected_character = self._process_character_through_reflector(forwarded_character)
+                yield self._cascade_character_backward(reflected_character)
         else:
             return ''
                 
@@ -134,3 +129,6 @@ class Enigma:
 # ABCDEFGHIJKLMNOPQRSTUVWXYZ
 # 0123456789
 # !@#$%^&*()-=_+[]{}|;\':",.<>/?
+
+
+# Make the initial message preset the rotors for the next message?

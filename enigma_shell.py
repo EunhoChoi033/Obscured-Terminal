@@ -20,7 +20,7 @@ class EnigmaShell:
             else:
                 self._enigma.set_message(message)
             
-            message = self._enigma.process_message(self._enigma.get_message())
+            message = ''.join(self._enigma.process_message(self._enigma.get_message())) # type: ignore
             print(f'| Output: {message}')
                 
 
