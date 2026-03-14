@@ -33,11 +33,6 @@ class EnigmaShell:
             return None
         
         
-    # def _process_message(self, message: str) -> str:
-    #     '''Asks the Enigma to process the message and returns that processed message'''
-    #     return self._enigma.process_message(message)
-        
-        
     def get_message(self) -> None | str:
         '''Returns the current message of the Enigma'''
         return self._enigma.get_message()
