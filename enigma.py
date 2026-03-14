@@ -10,7 +10,7 @@ from reflector import Reflector
 
 
 
-_NUM_ROTORS = 2
+_NUM_ROTORS = 5
 _CODE_NUMBER = 3301
 
 
@@ -58,11 +58,10 @@ class Enigma:
         self._rotor_offsets[0] += 1
         self._rotors[0].click_rotor_by_one()
         for index in range(1, len((self._rotors))):
-            previous_rotor_offset = self._rotor_offsets[index - 1]
-
-            if previous_rotor_offset >= len(self._keywords):
-                previous_rotor_offset = 0
-                self._rotors[index - 1].click_rotor_by_one()
+            if self._rotor_offsets[index - 1] >= len(self._keywords):
+                self._rotor_offsets[index - 1] = 0
+                self._rotor_offsets[index] += 1
+                self._rotors[index].click_rotor_by_one()
 
 
     def _cascade_character_forward(self, character: str) -> str:
@@ -131,4 +130,8 @@ class Enigma:
 # !@#$%^&*()-=_+[]{}|;\':",.<>/?
 
 
+# Next Ideas:
 # Make the initial message preset the rotors for the next message?
+# Randomly make some characters the same as in the original message
+# Reverse the encrypted and/or decrypted message in some manner
+# Modify the random seed determination
