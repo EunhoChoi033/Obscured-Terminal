@@ -18,7 +18,7 @@ class EnigmaApp:
         
         self._root_window = tkinter.Tk()
         self._root_window.geometry('800x500')
-        self._root_window.title('Wunderwaffe XM1')  
+        self._root_window.title('Obscured M1')  
         self._root_window.configure(padx = 30, pady = 30)
 
         self._message_label = tkinter.Label(self._root_window, text = 'Message:', font = _DEFAULT_BOLD_FONT, anchor = 'w')
