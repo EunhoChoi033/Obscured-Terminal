@@ -25,13 +25,13 @@ jobs:
 
       - name: Build Windows executable
         run: |
-          pyinstaller --onefile --windowed --name "Obscured_M1" --add-data "enigma.py;." enigma_app.py
+          pyinstaller --onefile --windowed --name "Obscured" --add-data "enigma.py;." enigma_app.py
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Obscured_M1-Windows
-          path: dist/Obscured_M1.exe
+          name: Obscured-Windows
+          path: dist/Obscured.exe
 
   build-macos:
     runs-on: macos-latest
@@ -51,13 +51,13 @@ jobs:
 
       - name: Build macOS executable
         run: |
-          pyinstaller --onefile --windowed --name "Obscured_M1" --add-data "enigma.py:." enigma_app.py
+          pyinstaller --onefile --windowed --name "Obscured" --add-data "enigma.py:." enigma_app.py
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Obscured_M1-macOS
-          path: dist/Obscured_M1
+          name: Obscured-macOS
+          path: dist/Obscured
 
   release:
     needs: [build-windows, build-macos]
@@ -70,18 +70,18 @@ jobs:
       - name: Download Windows artifact
         uses: actions/download-artifact@v4
         with:
-          name: Obscured_M1-Windows
+          name: Obscured-Windows
           path: artifacts/windows
 
       - name: Download macOS artifact
         uses: actions/download-artifact@v4
         with:
-          name: Obscured_M1-macOS
+          name: Obscured-macOS
           path: artifacts/macos
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/windows/Obscured_M1.exe
-            artifacts/macos/Obscured_M1
+            artifacts/windows/Obscured.exe
+            artifacts/macos/Obscured
