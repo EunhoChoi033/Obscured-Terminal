@@ -18,7 +18,7 @@ _CODE_NUMBER = 3301
 class Enigma:
     def __init__(self):
         self._keywords = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '=', '_', '+', '[', ']', '{', '}', '|', ';', '\'', ':', '\\', '"', ',', '.', '<', '>', '/', '?', '`', ' ']
-        self._keyword_indexes = list(range(len(self._keywords))) # [0, 1, 2, 3, 4, 5, ..., 93]
+        self._keyword_indexes = list(range(len(self._keywords)))
         self._message = None
         self._set_random_seed()
         self._rotors = self._setup_rotors()
@@ -83,16 +83,16 @@ class Enigma:
         return character
 
 
-    def process_message(self, message: str) -> Generator[str, None, None]:
-        '''Returns the processed version of the given message as Generator of characters'''
-        if message is not None:
-            for character in message:
+    def process_message(self) -> Generator[str, None, None]:
+        '''Returns the processed version of the enigma\'s current message as Generator of characters'''
+        if self._message is not None:
+            for character in self._message:
                 self._click_rotor_offsets()
                 forwarded_character = self._cascade_character_forward(character)
                 reflected_character = self._process_character_through_reflector(forwarded_character)
                 yield self._cascade_character_backward(reflected_character)
         else:
-            return ''
+            yield ''
                 
 
     def get_message(self) -> None | str:
@@ -135,3 +135,4 @@ class Enigma:
 # Randomly make some characters the same as in the original message
 # Reverse the encrypted and/or decrypted message in some manner
 # Modify the random seed determination
+# Incorporate Vigenere Cipher + the current code for trolling purposes?
