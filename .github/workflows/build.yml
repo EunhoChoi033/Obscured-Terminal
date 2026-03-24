@@ -1,92 +1,49 @@
-name: Build Executables
+name: Build Obscured App
 
 on:
   push:
-    tags:
-      - "v*"
-  workflow_dispatch:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build:
+    name: Build on ${{ matrix.os }}
+    strategy:
+      matrix:
+        # This runs the process twice: once on Windows and once on Mac
+        os: [windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyinstaller
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        # If you have other requirements (like numpy), add them here:
+        # pip install -r requirements.txt
 
-      - name: Build Windows executable
-        run: |
-          pyinstaller --onefile --windowed --name "Obscured" --add-data "enigma.py;." enigma_app.py
+    - name: Build with PyInstaller (Windows)
+      if: matrix.os == 'windows-latest'
+      run: pyinstaller --onefile --windowed --name "Obscured" enigma_app.py
 
-      - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Obscured-Windows
-          path: dist/Obscured.exe
+    - name: Build with PyInstaller (macOS)
+      if: matrix.os == 'macos-latest'
+      run: pyinstaller --onefile --windowed --name "Obscured" --osx-bundle-identifier com.enigma.obscured enigma_app.py
 
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyinstaller
-
-      - name: Build macOS executable
-        run: |
-          pyinstaller --onefile --windowed --name "Obscured" --add-data "enigma.py:." enigma_app.py
-
-      - name: Zip the macOS App Bundle
-        run: |
-          cd dist
-          zip -r Obscured-macOS.zip Obscured.app
-
-      - name: Upload macOS artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Obscured-macOS
-          path: dist/Obscured-macOS.zip
-
-  release:
-    needs: [build-windows, build-macos]
-    runs-on: ubuntu-latest
-    # Only run on tag pushes
-    if: startsWith(github.ref, 'refs/tags/')
-    permissions:
-      contents: write
-    steps:
-      - name: Download Windows artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: Obscured-Windows
-          path: artifacts/windows
-
-      - name: Download macOS artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: Obscured-macOS
-          path: artifacts/macos
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            artifacts/windows/Obscured.exe
-            artifacts/macos/Obscured
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: Obscured-${{ matrix.os }}
+        path: |
+          dist/Obscured.exe
+          dist/Obscured.app
